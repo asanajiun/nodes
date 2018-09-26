@@ -17,13 +17,14 @@ import io.aexp.nodes.graphql.exceptions.GraphQLException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import okhttp3.OkHttpClient;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.net.HttpURLConnection;
+import javax.net.ssl.HttpsURLConnection;
 import java.net.URL;
 import java.util.Map;
 
@@ -47,7 +48,12 @@ final class Fetch {
         try {
             String requestParams = mapper.writeValueAsString(request);
             byte[] postData = requestParams.getBytes();
-            HttpURLConnection connection = createConnection(requestEntity.getUrl(), postData, requestEntity.getHeaders());
+
+            HttpsURLConnection connection = createConnection(
+                    requestEntity.getUrl(),
+                    postData,
+                    requestEntity.getHeaders(),
+                    requestEntity.getClient());
 
             DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
             dataOutputStream.write(postData);
@@ -83,18 +89,24 @@ final class Fetch {
             if (exception instanceof GraphQLException) throw (GraphQLException) exception;
             GraphQLException err = new GraphQLException();
             err.setStatus(responseStatus);
-            err.setMessage(responseMessage);
+            err.setMessage(responseMessage + ", original message: " + exception.toString());
             err.setDescription(exception.getMessage());
             throw err;
         }
     }
 
-    private HttpURLConnection createConnection(URL requestUrl, byte[] postData, Map<String, String> headers) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) requestUrl.openConnection();
+    //Probably refactor this part
+    private HttpsURLConnection createConnection(URL requestUrl,
+                                                byte[] postData,
+                                                Map<String, String> headers, OkHttpClient client) throws IOException {
+        HttpsURLConnection connection = (HttpsURLConnection) requestUrl.openConnection();
         int postDataLength = postData.length;
         connection.setDoInput(true);
         connection.setDoOutput(true);
         connection.setInstanceFollowRedirects(false);
+        if(client!=null && client.sslSocketFactory()!=null) {
+            connection.setSSLSocketFactory(client.sslSocketFactory());
+        }// or simply use OkhttpClient
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestProperty("Accept", "application/json");

@@ -32,6 +32,7 @@ import io.aexp.nodes.graphql.annotations.GraphQLProperty;
 import io.aexp.nodes.graphql.annotations.GraphQLVariable;
 import io.aexp.nodes.graphql.annotations.GraphQLVariables;
 import io.aexp.nodes.graphql.exceptions.GraphQLException;
+import okhttp3.OkHttpClient;
 
 public final class GraphQLRequestEntity {
 
@@ -40,6 +41,7 @@ public final class GraphQLRequestEntity {
     }
 
     private final URL url;
+    private final OkHttpClient client;
     private final Map<String, String> headers;
     private final Map<String, Object> variables;
     private final Property property = new Property();
@@ -49,6 +51,7 @@ public final class GraphQLRequestEntity {
 
     GraphQLRequestEntity(RequestBuilder builder) {
         this.url = builder.url;
+        this.client = builder.okHttpClient;
         this.scalars = Collections.unmodifiableList(builder.scalars);
         this.headers = Collections.unmodifiableMap(builder.headers);
         this.variables = Collections.unmodifiableMap(variableListToMap(builder.variables));
@@ -67,6 +70,8 @@ public final class GraphQLRequestEntity {
     public URL getUrl() {
         return url;
     }
+
+    public OkHttpClient getClient() { return client;}
 
     public Map<String, String> getHeaders() {
         return headers;
@@ -320,11 +325,17 @@ public final class GraphQLRequestEntity {
         List<Arguments> arguments = null;
         List<Variable> variables = new ArrayList<Variable>();
         List<Class> scalars = new ArrayList<Class>();
+        OkHttpClient okHttpClient = null;
 
         RequestBuilder() { }
 
         public RequestBuilder url(String url) throws MalformedURLException {
             this.url = new URL(url);
+            return this;
+        }
+
+        public RequestBuilder client(OkHttpClient okHttpClient){
+            this.okHttpClient = okHttpClient;
             return this;
         }
 

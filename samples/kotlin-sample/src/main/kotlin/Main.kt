@@ -22,7 +22,7 @@ import java.math.BigInteger
 import java.util.*
 
 // https://developer.github.com/v4/guides/forming-calls/#authenticating-with-graphql
-const val YOUR_AUTH_TOKEN = "eeb7987aef9ccd7440a49cae2acc7f58bb415059"
+const val YOUR_AUTH_TOKEN = "81110682d260ccea0e9a02c713153c351c1fb0a8"
 
 fun main(args: Array<String>) {
     val headers = HashMap<String, String>()
@@ -33,7 +33,7 @@ fun main(args: Array<String>) {
             .url("https://api.github.com/graphql")
             .request(User::class.java)
             .headers(headers)
-            .arguments(Arguments("user", Argument("login", "chemdrew")))
+            .arguments(Arguments("user", Argument("login", "asanajiun")))
             .variables(Variable("isFork", false))
             .scalars(BigDecimal::class.java, BigInteger::class.java)
             .build()
